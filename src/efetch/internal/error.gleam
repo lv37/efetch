@@ -1,9 +1,8 @@
-import classify.{type Field, CustomValue, classify}
 import efetch/internal/fetch/error.{
   type ConnectError, type DNSError, type TLSError,
 }
 import gleam/dynamic.{type Dynamic}
-import gleam/list
+import gleam/erlang/atom
 import gleam/result
 
 pub type HttpError {
@@ -17,78 +16,80 @@ pub type HttpError {
   Other(Dynamic)
 }
 
-pub fn http_err_from_httpc_err(err: Dynamic) -> HttpError {
-  let typ = classify(err)
-  case typ {
-    CustomValue("FailedConnect", info) -> httpc_connect_err(info)
-    _ -> Other(err)
-  }
+pub type FailedToConnect {
+  FailedToConnect(List(#(List(Int), Int)))
 }
 
-pub fn httpc_connect_err(info: List(Field)) -> HttpError {
-  case list.map(info, fn(field) { classify(field.value) }) {
-    [classify.ListValue([_, kind])] -> {
-      case classify(kind) {
-        CustomValue(_, [_, kind]) -> {
-          case classify(kind.value) {
-            CustomValue(kind, _) -> Ok(kind)
-            _ -> Error(Nil)
-          }
-        }
-        _ -> Error(Nil)
+@external(javascript, "../../unimplemented_ffi.mjs", "unimplemented")
+pub fn http_err_from_httpc_err(err: Dynamic) -> HttpError {
+  err
+  |> dynamic.element(1, dynamic.list(dynamic.dynamic))
+  |> result.try(fn(list) {
+    case list {
+      [_, t] -> {
+        t
+        |> dynamic.element(2, atom.from_dynamic)
+        |> result.try_recover(fn(_) {
+          t |> dynamic.element(2, dynamic.element(0, atom.from_dynamic))
+        })
+        |> result.map(fn(a) {
+          atom.to_string(a)
+          |> httpc_connect_err()
+        })
       }
-    }
-    _ -> Error(Nil)
-  }
-  |> result.map(fn(kind) {
-    let kind = case kind {
-      "Eacces" -> error.EACCES
-      "Eperm" -> error.EPERM
-      "Eaddinuse" -> error.EADDRINUSE
-      "Eaddrnotavail" -> error.EADDRNOTAVAIL
-      "Eafnosupport" -> error.EAFNOSUPPORT
-      "Eagain" -> error.EAGAIN
-      "Ealready" -> error.EALREADY
-      "Ebadf" -> error.EBADF
-      "Econnrefused" -> error.ECONNREFUSED
-      "Efault" -> error.EFAULT
-      "Einprogress" -> error.EINPROGRESS
-      "Eintr" -> error.EINTR
-      "Eisconn" -> error.EISCONN
-      "Enetunreach" -> error.ENETUNREACH
-      "Enotsock" -> error.ENOTSOCK
-      "Eprototype" -> error.EPROTOTYPE
-      "Etimeout" -> error.ETIMEDOUT
-      _ -> error.UnknownConnectError(kind)
-    }
-    case kind {
-      error.UnknownConnectError(kind) -> {
-        let kind = case kind {
-          "Nxdomain" -> error.NotFound
-          "Formerr" -> error.Formerr
-          "Qfmterr" -> error.BadQuery
-          "Servfail" -> error.ServerFail
-          "Notimp" -> error.NotImplemented
-          "Timeout" -> error.Timeout
-          "Badvers" -> error.BadFamily
-          // what does "badvers" even mean?
-          _ -> error.UnknownDNSError(kind)
-        }
-        case kind {
-          error.UnknownDNSError(kind) -> {
-            case kind {
-              "TlsAlert" -> error.InvalidTLSCertAltName
-              _ -> error.UnknownTLSError(kind)
-            }
-            |> TLSError
-          }
-          _ -> DNSError(kind)
-        }
-      }
-      _ -> ConnectError(kind)
+      _ -> Other(err) |> Ok()
     }
   })
-  |> result.unwrap(UnknownNetworkError("Unknown"))
+  |> result.unwrap(Other(err))
+}
+
+pub fn httpc_connect_err(kind: String) -> HttpError {
+  let kind = case kind {
+    "eacces" -> error.EACCES
+    "eperm" -> error.EPERM
+    "eaddinuse" -> error.EADDRINUSE
+    "eaddrnotavail" -> error.EADDRNOTAVAIL
+    "eafnosupport" -> error.EAFNOSUPPORT
+    "eagain" -> error.EAGAIN
+    "ealready" -> error.EALREADY
+    "ebadf" -> error.EBADF
+    "econnrefused" -> error.ECONNREFUSED
+    "efault" -> error.EFAULT
+    "einprogress" -> error.EINPROGRESS
+    "eintr" -> error.EINTR
+    "eisconn" -> error.EISCONN
+    "enetunreach" -> error.ENETUNREACH
+    "enotsock" -> error.ENOTSOCK
+    "eprototype" -> error.EPROTOTYPE
+    "etimeout" -> error.ETIMEDOUT
+    _ -> error.UnknownConnectError(kind)
+  }
+  case kind {
+    error.UnknownConnectError(kind) -> {
+      let kind = case kind {
+        "nxdomain" -> error.NotFound
+        "formerr" -> error.Formerr
+        "qfmterr" -> error.BadQuery
+        "servfail" -> error.ServerFail
+        "notimp" -> error.NotImplemented
+        "timeout" -> error.Timeout
+        "badvers" -> error.BadFamily
+        // what does "badvers" even mean?
+        _ -> error.UnknownDNSError(kind)
+      }
+      case kind {
+        error.UnknownDNSError(kind) -> {
+          case kind {
+            "tls_alert" -> error.InvalidTLSCertAltName
+            _ -> error.UnknownTLSError(kind)
+          }
+          |> TLSError
+        }
+        _ -> DNSError(kind)
+      }
+    }
+    _ -> ConnectError(kind)
+  }
 }
 
 pub fn http_res_from_httpc_res(res: Result(a, Dynamic)) -> Result(a, HttpError) {
