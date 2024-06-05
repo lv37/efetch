@@ -1,0 +1,29 @@
+name = "efetch"
+version = "1.0.0"
+
+# Fill out these fields if you intend to generate HTML documentation or publish
+# your project to the Hex package manager.
+#
+description = "A Gleam http client for Erlang and JavaScript tragets."
+licences = ["MIT"]
+repository = { type = "github", user = "lv37", repo = "efetch" }
+# links = [{ title = "Website", href = "https://gleam.run" }]
+#
+# For a full reference of all the available options, you can have a look at
+# https://gleam.run/writing-gleam/gleam-toml/.
+
+internal_modules = [
+  "efetch/internal",
+  "efetch/internal/*",
+]
+
+[dependencies]
+gleam_stdlib = "~> 0.34 or ~> 1.0"
+gleam_javascript = "~> 0.7"
+gleam_httpc = ">= 2.2.0 and < 3.0.0"
+gleam_fetch = ">= 1.0.0 and < 2.0.0"
+gleam_http = ">= 3.6.0 and < 4.0.0"
+classify = ">= 1.0.0 and < 2.0.0"
+
+[dev-dependencies]
+gleeunit = "~> 1.0"

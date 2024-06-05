@@ -1,0 +1,72 @@
+import gleam/fetch.{type FetchRequest, type FetchResponse, type FetchBody}
+import internal/fetch/error
+import gleam/javascript/promise.{type Promise}
+import gleam/http/request.{type Request}
+import gleam/http/response.{type Response}
+
+@external(javascript, "../../fetch_ffi.mjs", "raw_send")
+pub fn fetch(req: FetchRequest) -> Promise(Result(FetchResponse, error.FetchError))
+
+pub fn fetch_callback(req: Request(a), transform_fn: fn(Request(a)) -> Result(FetchRequest, error.DNSError), callback: fn (Result(FetchResponse, error.FetchError)) -> b) -> Request(a) {
+	case transform_fn(req) {
+		Ok(req) -> {
+			fetch(req)
+			|> promise.tap(fn(res) {
+				case res {
+					Error(err) -> {
+						callback(Error(err))
+						Nil
+					}
+					Ok(res) -> {
+						callback(Ok(res))
+						Nil
+					}
+				}
+			})
+			Nil
+		}
+		Error(err) -> {
+			callback(Error(error.DNSError(err)))
+			Nil
+		}
+	}
+	req
+}
+
+@external(javascript, "../../fetch_ffi.mjs", "to_fetch_request")
+pub fn to_fetch_request(a: Request(String)) -> Result(FetchRequest, error.DNSError)
+
+@external(javascript, "../../fetch_ffi.mjs", "bitarray_request_to_fetch_request")
+pub fn bitarray_request_to_fetch_request(a: Request(BitArray)) -> Result(FetchRequest, error.DNSError)
+
+pub fn send_generic(req: Request(a), callback: fn (Result(Response(a), error.FetchError)) -> b, transform_req_fn: fn(Request(a)) ->Result(FetchRequest, error.DNSError), transform_fn: fn(Response(FetchBody)) -> Promise(Result(Response(a), fetch.FetchError))) -> Request(a) {
+	use res <- fetch_callback(req, transform_req_fn)
+	case res {
+		Error(err) -> {
+			callback(Error(err))
+			Nil
+		}
+		Ok(res) -> {
+			fetch.from_fetch_response(res)
+			|> transform_fn()
+			|> promise.tap(fn (res) {
+				case res {
+					Error(fetch.InvalidJsonBody) -> callback(Error(error.InvalidJsonBody))
+					Error(fetch.UnableToReadBody) | Error(fetch.NetworkError(_)) -> callback(Error(error.UnableToReadBody))
+					Ok(res) -> {
+						callback(Ok(res))
+					}
+				}
+			})
+			Nil
+		}
+	}
+}
+
+pub fn send(req: Request(String), callback: fn(Result(Response(String), error.FetchError)) -> a) -> Request(String) {
+	send_generic(req, callback, to_fetch_request, fetch.read_text_body)
+}
+
+pub fn send_bits(req: Request(BitArray), callback: fn(Result(Response(BitArray), error.FetchError)) -> a) -> Request(BitArray) {
+	send_generic(req, callback, bitarray_request_to_fetch_request, fetch.read_bytes_body)
+}
