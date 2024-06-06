@@ -4,7 +4,6 @@ import gleam/dynamic.{type Dynamic}
 import gleam/http/request.{type Request}
 import gleam/http/response.{type Response}
 import gleam/httpc
-import gleam/io
 import gleam/result
 
 fn internal_connect_err_to_connect_err(err: error.ConnectError) -> ConnectError {
