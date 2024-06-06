@@ -7,10 +7,17 @@
 gleam add efetch
 ```
 ```gleam
+import gleam/http/request
+import gleam/http
+import gleam/result
 import efetch
 
 pub fn main() {
-  // TODO: An example of the project in use
+  let assert Ok(req) = request.to("https://github.com")
+  use res <- efetch.send(req)
+  res
+  |> result.map(fn(res) { io.debug(res.status) })
+  |> result.map_error(io.debug)
 }
 ```
 
