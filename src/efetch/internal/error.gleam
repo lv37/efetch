@@ -40,7 +40,14 @@ pub fn http_err_from_httpc_err(err: Dynamic) -> HttpError {
       _ -> Other(err) |> Ok()
     }
   })
-  |> result.unwrap(Other(err))
+  |> result.lazy_unwrap(fn() {
+    case dynamic.string(err) {
+      Ok("Response body was not valid UTF-8") -> {
+        InvalidUtf8Response
+      }
+      _ -> Other(err)
+    }
+  })
 }
 
 pub fn httpc_connect_err(kind: String) -> HttpError {
