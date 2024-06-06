@@ -1,5 +1,5 @@
 name = "efetch"
-version = "1.0.0"
+version = "1.0.1"
 
 # Fill out these fields if you intend to generate HTML documentation or publish
 # your project to the Hex package manager.
@@ -19,11 +19,11 @@ internal_modules = [
 
 [dependencies]
 gleam_stdlib = "~> 0.34 or ~> 1.0"
-gleam_javascript = "~> 0.7"
+gleam_http = ">= 3.6.0 and < 4.0.0"
 gleam_httpc = ">= 2.2.0 and < 3.0.0"
 gleam_fetch = ">= 1.0.0 and < 2.0.0"
-gleam_http = ">= 3.6.0 and < 4.0.0"
 gleam_erlang = ">= 0.25.0 and < 1.0.0"
+gleam_javascript = ">= 0.8.0 and < 1.0.0"
 
 [dev-dependencies]
-gleeunit = "~> 1.0"
+gleeunit = ">= 1.1.2 and < 2.0.0"
