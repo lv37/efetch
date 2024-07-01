@@ -6,7 +6,27 @@ import * as $error from "./efetch/internal/fetch/error.mjs";
 
 export { bitarray_request_to_fetch_request, fetch, to_fetch_request };
 
-export function fetch_callback(req, transform_fn, callback) {
+function read_bytes_body(response) {
+  let body;
+  try {
+    body = response.body.arrayBuffer()
+  } catch (error) {
+    return new Error(new $fetch.UnableToReadBody());
+  }
+  return new Ok(response.withFields({ body: toBitArray(new Uint8Array(body)) }));
+}
+
+function read_text_body(response) {
+  let body;
+  try {
+    body = response.body.text();
+  } catch (error) {
+    return new Error(new $fetch.UnableToReadBody());
+  }
+  return new Ok(response.withFields({ body }));
+}
+
+export function fetch_callback(req, transform_fn) {
   let $ = transform_fn(req);
 
   if ($.isOk()) {
@@ -23,49 +43,42 @@ export function fetch_callback(req, transform_fn, callback) {
   }
 }
 
-export function send_generic(req, callback, transform_req_fn, transform_fn) {
-  return fetch_callback(
+export function send_generic(req, transform_req_fn, transform_fn) {
+  const res = fetch_callback(
     req,
     transform_req_fn,
-    (res) => {
-      if (!res.isOk()) {
-        let err = res[0];
-        callback(new Error(err));
-        return undefined;
-      } else {
-        let res$1 = res[0];
-        let _pipe = $fetch.from_fetch_response(res$1);
-        let _pipe$1 = transform_fn(_pipe);
-        $promise.tap(
-          _pipe$1,
-          (res) => {
-            if (!res.isOk() && res[0] instanceof $fetch.InvalidJsonBody) {
-              return callback(new Error(new $error.InvalidJsonBody()));
-            } else if (!res.isOk() && res[0] instanceof $fetch.UnableToReadBody) {
-              return callback(new Error(new $error.UnableToReadBody()));
-            } else if (!res.isOk() && res[0] instanceof $fetch.NetworkError) {
-              return callback(new Error(new $error.UnableToReadBody()));
-            } else {
-              let res$1 = res[0];
-              return callback(new Ok(res$1));
-            }
-          },
-        )
-        return undefined;
-      }
-    },
-  );
+  )
+  if (!res.isOk()) {
+    let err = res[0];
+    return new Error(err);
+  } else {
+    let res$1 = res[0];
+    let _pipe = $fetch.from_fetch_response(res$1);
+    let res$2 = transform_fn(_pipe);
+
+    if (!res$2.isOk() && res$2[0] instanceof $fetch.InvalidJsonBody) {
+      return new Error(new $error.InvalidJsonBody());
+    } else if (!res$2.isOk() && res$2[0] instanceof $fetch.UnableToReadBody) {
+      return new Error(new $error.UnableToReadBody());
+    } else if (!res$2.isOk() && res$2[0] instanceof $fetch.NetworkError) {
+      return new Error(new $error.UnableToReadBody());
+    } else {
+      let res$1 = res$2[0];
+      return new Ok(res$1);
+    }
+  }
+
+
 }
 
-export function send(req, callback) {
-  return send_generic(req, callback, to_fetch_request, $fetch.read_text_body);
+export function send(req) {
+  return send_generic(req, to_fetch_request, read_text_body);
 }
 
 export function send_bits(req, callback) {
   return send_generic(
     req,
-    callback,
     bitarray_request_to_fetch_request,
-    $fetch.read_bytes_body,
+    read_bytes_body,
   );
 }

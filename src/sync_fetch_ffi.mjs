@@ -8,14 +8,15 @@ function fetchSyncCurl(url, options ={}) {
 	if (res.statusCode === 200) {
 		statusText = 'OK'
 	}
+	let text = () => new TextDecoder('utf8').decode(res.body)
 	return {
     status: res.statusCode,
     statusText: statusText,
     headers: res.headers,
-    text: () => res.getBody('utf8'),
-    json: () => JSON.parse(res.getBody('utf8')),
-    blob: () => new Blob([res.getBody('binary')]),
-    arrayBuffer: () => res.getBody('binary'),
+    arrayBuffer: () => res.body,
+    text,
+    json: () => JSON.parse(text),
+    blob: () => new Blob([res.body]),
   };
 }
 

@@ -8,8 +8,15 @@ import { fetchSync } from './sync_fetch_ffi.mjs'
 
 export function raw_send(request) {
   try {
+  const b = []
   const headers = request.headers.forEach((v, k) => { b[k] = v })
-    return new Ok(fetchSync(request.url, {...request, headers}));
+    const r = fetchSync(request.url, {...request, headers: b});
+    const res = { ...r, headers: [] }
+    res.objHeaders = r.headers
+    for (const k in r.headers) {
+    	res.headers.push([k, r.headers[k]].join(': '))
+    }
+    return new Ok(res)
   } catch (err) {
     return new Error(fetch_error_to_gleam(err));
   }
