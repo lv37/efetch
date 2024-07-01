@@ -4,10 +4,12 @@ import { to_string as uri_to_string } from "../gleam_stdlib/gleam/uri.mjs";
 import { method_to_string } from "../gleam_http/gleam/http.mjs";
 import { to_uri } from "../gleam_http/gleam/http/request.mjs";
 import { NotFound } from "./efetch/internal/fetch/error.mjs"
+import { fetchSync } from './sync_fetch_ffi.mjs'
 
-export async function raw_send(request) {
+export function raw_send(request) {
   try {
-    return new Ok(await fetch(request));
+  const headers = request.headers.forEach((v, k) => { b[k] = v })
+    return new Ok(fetchSync(request.url, {...request, headers}));
   } catch (err) {
     return new Error(fetch_error_to_gleam(err));
   }

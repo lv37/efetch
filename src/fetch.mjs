@@ -8,30 +8,19 @@ export { bitarray_request_to_fetch_request, fetch, to_fetch_request };
 
 export function fetch_callback(req, transform_fn, callback) {
   let $ = transform_fn(req);
+
   if ($.isOk()) {
     let req$1 = $[0];
-    let _pipe = fetch(req$1);
-    $promise.tap(
-      _pipe,
-      (res) => {
-        if (!res.isOk()) {
-          let err = res[0];
-          callback(new Error(err));
-          return undefined;
-        } else {
-          let res$1 = res[0];
-          callback(new Ok(res$1));
-          return undefined;
-        }
-      },
-    )
-    undefined
+    let res = fetch(req$1);
+    if (!res.isOk()) {
+      return new Error(res[0])
+    } else {
+      return new Ok(res[0])
+    }
   } else {
     let err = $[0];
-    callback(new Error(new $error.DNSError(err)));
-    undefined
+    return new Error(new $error.DNSError(err));
   }
-  return req;
 }
 
 export function send_generic(req, callback, transform_req_fn, transform_fn) {

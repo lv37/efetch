@@ -52,23 +52,25 @@ pub fn http_err_from_httpc_err(err: Dynamic) -> HttpError {
 
 pub fn httpc_connect_err(kind: String) -> HttpError {
   let kind = case kind {
-    "eacces" -> error.EACCES
-    "eperm" -> error.EPERM
-    "eaddinuse" -> error.EADDRINUSE
-    "eaddrnotavail" -> error.EADDRNOTAVAIL
-    "eafnosupport" -> error.EAFNOSUPPORT
-    "eagain" -> error.EAGAIN
-    "ealready" -> error.EALREADY
-    "ebadf" -> error.EBADF
-    "econnrefused" -> error.ECONNREFUSED
-    "efault" -> error.EFAULT
-    "einprogress" -> error.EINPROGRESS
-    "eintr" -> error.EINTR
-    "eisconn" -> error.EISCONN
-    "enetunreach" -> error.ENETUNREACH
-    "enotsock" -> error.ENOTSOCK
-    "eprototype" -> error.EPROTOTYPE
-    "etimeout" -> error.ETIMEDOUT
+    "eacces" -> error.EAcces
+    "eperm" -> error.EPerm
+    "eaddinuse" -> error.EAddrinuse
+    "eaddrnotavail" -> error.Eddrnotavail
+    "eafnosupport" -> error.EAfnosupport
+    "eagain" -> error.EAgain
+    "ealready" -> error.EAlready
+    "ebadf" -> error.EBadF
+    "econnrefused" -> error.EConnrefused
+    "efault" -> error.EFault
+    "einprogress" -> error.EInProgress
+    "eintr" -> error.EIntr
+    "eisconn" -> error.EIsConn
+    "enetunreach" -> error.ENetUnreach
+    "enotsock" -> error.ENotSock
+    "eprototype" -> error.EPrototype
+    "etimeout" -> error.ETimeout
+    "enodev" -> error.ENoDev
+    "enodata" -> error.ENoData
     _ -> error.UnknownConnectError(kind)
   }
   case kind {

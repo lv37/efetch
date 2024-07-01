@@ -8,23 +8,25 @@ import gleam/result
 
 fn internal_connect_err_to_connect_err(err: error.ConnectError) -> ConnectError {
   case err {
-    error.EACCES -> EACCES
-    error.EPERM -> EPERM
-    error.EADDRINUSE -> EADDRINUSE
-    error.EADDRNOTAVAIL -> EADDRNOTAVAIL
-    error.EAFNOSUPPORT -> EAFNOSUPPORT
-    error.EAGAIN -> EAGAIN
-    error.EALREADY -> EALREADY
-    error.EBADF -> EBADF
-    error.ECONNREFUSED -> ECONNREFUSED
-    error.EFAULT -> EFAULT
-    error.EINPROGRESS -> EINPROGRESS
-    error.EINTR -> EINTR
-    error.EISCONN -> EISCONN
-    error.ENETUNREACH -> ENETUNREACH
-    error.ENOTSOCK -> ENOTSOCK
-    error.EPROTOTYPE -> EPROTOTYPE
-    error.ETIMEDOUT -> ETIMEDOUT
+    error.EAcces -> EAcces
+    error.EPerm -> EPerm
+    error.EAddrinuse -> EAddrinuse
+    error.Eddrnotavail -> Eddrnotavail
+    error.EAfnosupport -> EAfnosupport
+    error.EAgain -> EAgain
+    error.EAlready -> EAlready
+    error.EBadF -> EBadF
+    error.EConnrefused -> EConnrefused
+    error.EFault -> EFault
+    error.EInProgress -> EInProgress
+    error.EIntr -> EIntr
+    error.EIsConn -> EIsConn
+    error.ENetUnreach -> ENetUnreach
+    error.ENotSock -> ENotSock
+    error.EPrototype -> EPrototype
+    error.ETimeout -> ETimeout
+    error.ENoDev -> ENoDev
+    error.ENoData -> ENoData
     error.UnknownConnectError(str) -> UnknownConnectError(str)
   }
 }
@@ -98,23 +100,25 @@ fn internal_http_res_to_http_res(
 }
 
 pub type ConnectError {
-  EACCES
-  EPERM
-  EADDRINUSE
-  EADDRNOTAVAIL
-  EAFNOSUPPORT
-  EAGAIN
-  EALREADY
-  EBADF
-  ECONNREFUSED
-  EFAULT
-  EINPROGRESS
-  EINTR
-  EISCONN
-  ENETUNREACH
-  ENOTSOCK
-  EPROTOTYPE
-  ETIMEDOUT
+  EAcces
+  EPerm
+  EAddrinuse
+  Eddrnotavail
+  EAfnosupport
+  EAgain
+  EAlready
+  EBadF
+  EConnrefused
+  EFault
+  EInProgress
+  EIntr
+  EIsConn
+  ENetUnreach
+  ENotSock
+  EPrototype
+  ETimeout
+  ENoDev
+  ENoData
   UnknownConnectError(String)
 }
 
@@ -189,25 +193,17 @@ pub type HttpError {
 }
 
 @external(javascript, "./fetch.mjs", "send")
-pub fn send(
-  req: Request(String),
-  callback: fn(Result(Response(String), HttpError)) -> a,
-) -> Request(String) {
+pub fn send(req: Request(String)) -> Result(Response(String), HttpError) {
   httpc.send(req)
   |> http_res_from_httpc_res()
   |> internal_http_res_to_http_res()
-  |> callback()
-  req
 }
 
 @external(javascript, "./fetch.mjs", "send_bits")
 pub fn send_bits(
   req: Request(BitArray),
-  callback: fn(Result(Response(BitArray), HttpError)) -> a,
-) -> Request(BitArray) {
+) -> Result(Response(BitArray), HttpError) {
   httpc.send_bits(req)
   |> http_res_from_httpc_res()
   |> internal_http_res_to_http_res()
-  |> callback()
-  req
 }

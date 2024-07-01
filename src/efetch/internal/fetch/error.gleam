@@ -1,21 +1,23 @@
 pub type ConnectError {
-  EACCES
-  EPERM
-  EADDRINUSE
-  EADDRNOTAVAIL
-  EAFNOSUPPORT
-  EAGAIN
-  EALREADY
-  EBADF
-  ECONNREFUSED
-  EFAULT
-  EINPROGRESS
-  EINTR
-  EISCONN
-  ENETUNREACH
-  ENOTSOCK
-  EPROTOTYPE
-  ETIMEDOUT
+  EAcces
+  EPerm
+  EAddrinuse
+  Eddrnotavail
+  EAfnosupport
+  EAgain
+  EAlready
+  EBadF
+  EConnrefused
+  EFault
+  EInProgress
+  EIntr
+  EIsConn
+  ENetUnreach
+  ENotSock
+  EPrototype
+  ETimeout
+  ENoDev
+  ENoData
   UnknownConnectError(String)
 }
 
