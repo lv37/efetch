@@ -50,7 +50,6 @@ function fetchSyncXMLHttpRequest(url, options = {}) {
     statusText: xhr.statusText,
     headers: {},
     get headersObject() {
-    	console.log(xhr.getAllResponseHeaders())
       const headersArray = xhr.getAllResponseHeaders().trim().split(/[\r\n]+/);
       headersArray.forEach(line => {
         const parts = line.split(': ');

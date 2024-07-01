@@ -6,17 +6,37 @@ import { to_uri } from "../gleam_http/gleam/http/request.mjs";
 import { NotFound } from "./efetch/internal/fetch/error.mjs"
 import { fetchSync } from './sync_fetch_ffi.mjs'
 
+function clone_request(request) {
+	const b = []
+	request.headers.forEach((v, k) => { b[k] = v })
+	return {
+	  method: request.method,
+	  url: request.url,
+	  headers: b,
+	  destination: request.destination,
+	  referrer: request.referrer,
+	  referrerPolicy: request.referrerPolicy,
+	  mode: request.mode,
+	  credentials: request.credentials,
+	  cache: request.cache,
+	  redirect: request.redirect,
+	  integrity: request.integrity,
+	  keepalive: request.keepalive,
+	  isReloadNavigation: request.isReloadNavigation,
+	  isHistoryNavigation: request.isHistoryNavigation,
+	  signal: request.signal
+	}
+}
+
 export function raw_send(request) {
   try {
-  const b = []
-  const headers = request.headers.forEach((v, k) => { b[k] = v })
-    const r = fetchSync(request.url, {...request, headers: b});
-    const res = { ...r, headers: [] }
-    res.objHeaders = r.headers
-    for (const k in r.headers) {
-    	res.headers.push([k, r.headers[k]].join(': '))
-    }
-    return new Ok(res)
+  const r = fetchSync(request.url, clone_request(request));
+  const res = { ...r, headers: [] }
+  res.objHeaders = r.headers
+  for (const k in r.headers) {
+   	res.headers.push([k, r.headers[k]].join(': '))
+  }
+  return new Ok(res)
   } catch (err) {
     return new Error(fetch_error_to_gleam(err));
   }
