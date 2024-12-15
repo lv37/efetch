@@ -7,10 +7,11 @@ import { NotFound } from "./efetch/internal/fetch/error.mjs"
 import { fetchSync } from './sync_fetch_ffi.mjs'
 
 function clone_request(request) {
-	const b = []
+	const b = {}
 	request.headers.forEach((v, k) => { b[k] = v })
 	return {
 	  method: request.method,
+		body: request.body,
 	  url: request.url,
 	  headers: b,
 	  destination: request.destination,
@@ -63,7 +64,7 @@ export function to_fetch_request(request) {
   let [url, options] = request_common(request)
   if (options.method !== "GET" && options.method !== "HEAD") options.body = request.body;
   try {
-  	return new Ok(new globalThis.Request(url, options))
+  	return new Ok({ url, ...options })
   } catch (err) {
   	return new Error(new NotFound())
   }
