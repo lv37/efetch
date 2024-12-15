@@ -2,7 +2,7 @@ import efetch/internal/fetch/error.{
   type ConnectError, type DNSError, type TLSError,
 }
 import gleam/dynamic.{type Dynamic}
-import gleam/erlang/atom
+import gleam/httpc
 import gleam/result
 
 pub type HttpError {
@@ -21,33 +21,17 @@ pub type FailedToConnect {
 }
 
 @external(javascript, "../../unimplemented_ffi.mjs", "unimplemented")
-pub fn http_err_from_httpc_err(err: Dynamic) -> HttpError {
-  err
-  |> dynamic.element(1, dynamic.list(dynamic.dynamic))
-  |> result.try(fn(list) {
-    case list {
-      [_, t] -> {
-        t
-        |> dynamic.element(2, atom.from_dynamic)
-        |> result.try_recover(fn(_) {
-          t |> dynamic.element(2, dynamic.element(0, atom.from_dynamic))
-        })
-        |> result.map(fn(a) {
-          atom.to_string(a)
-          |> httpc_connect_err()
-        })
+pub fn http_err_from_httpc_err(err: httpc.HttpError) -> HttpError {
+  case err {
+    httpc.InvalidUtf8Response -> InvalidUtf8Response
+    httpc.FailedToConnect(ip, httpc.Posix("nxdomain"))
+    | httpc.FailedToConnect(_, ip) -> {
+      case ip {
+        httpc.TlsAlert(_, _) -> error.InvalidTLSCertAltName |> TLSError
+        httpc.Posix(kind) -> httpc_connect_err(kind)
       }
-      _ -> Other(err) |> Ok()
     }
-  })
-  |> result.lazy_unwrap(fn() {
-    case dynamic.string(err) {
-      Ok("Response body was not valid UTF-8") -> {
-        InvalidUtf8Response
-      }
-      _ -> Other(err)
-    }
-  })
+  }
 }
 
 pub fn httpc_connect_err(kind: String) -> HttpError {
@@ -101,7 +85,9 @@ pub fn httpc_connect_err(kind: String) -> HttpError {
   }
 }
 
-pub fn http_res_from_httpc_res(res: Result(a, Dynamic)) -> Result(a, HttpError) {
+pub fn http_res_from_httpc_res(
+  res: Result(a, httpc.HttpError),
+) -> Result(a, HttpError) {
   use err <- result.map_error(res)
   http_err_from_httpc_err(err)
 }
