@@ -3,21 +3,20 @@
 [![Package Version](https://img.shields.io/hexpm/v/efetch)](https://hex.pm/packages/efetch)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/efetch/)
 
+Uses `XMLHttpRequest` for the browser and `libcurl` for Nodejs.
+
 ```sh
 gleam add efetch
 ```
 ```gleam
 import gleam/http/request
 import gleam/http
-import gleam/result
 import efetch
 
 pub fn main() {
   let assert Ok(req) = request.to("https://github.com")
-  use res <- efetch.send(req)
-  res
-  |> result.map(fn(res) { io.debug(res.status) })
-  |> result.map_error(io.debug)
+  efetch.send(req)
+  |> io.debug
 }
 ```
 
