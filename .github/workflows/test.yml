@@ -13,9 +13,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
-      - name: Install dependencies
-        run: gleam deps download
       
       - name: Set up Erlang/OTP
         uses: erlef/setup-beam@v1
@@ -25,13 +22,17 @@ jobs:
           rebar3-version: "3"
           # elixir-version: "1"
       
-      - name: Build Erlang
-        run: gleam build --target erl
-      
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: "22"
+      
+      - name: Install dependencies
+        run: gleam deps download
+      
+      - name: Build Erlang
+        run: gleam build --target erl
+      
       
       - name: Build JavaScript
         run: gleam build --target js
