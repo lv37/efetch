@@ -17,10 +17,12 @@ internal_modules = ["efetch/internal", "efetch/internal/*"]
 [dependencies]
 gleam_stdlib = ">= 0.60.0 and < 1.0.0"
 gleam_http = ">= 4.0.0 and < 5.0.0"
-gleam_httpc = ">= 4.0.0 and < 5.0.0"
+gleam_httpc = ">= 4.1.1 and < 5.0.0"
 gleam_fetch = ">= 1.3.0 and < 2.0.0"
-gleam_erlang = ">= 0.34.0 and < 1.0.0"
-gleam_javascript = ">= 0.13.0 and < 1.0.0"
+gleam_erlang = ">= 1.0.0 and < 2.0.0"
+gleam_javascript = ">= 1.0.0 and < 2.0.0"
 
 [dev-dependencies]
-gleeunit = ">= 1.2.0 and < 2.0.0"
+gleeunit = ">= 1.5.1 and < 2.0.0"
+birdie = ">= 1.3.1 and < 2.0.0"
+gleam_json = ">= 3.0.1 and < 4.0.0"
