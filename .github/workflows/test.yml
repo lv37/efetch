@@ -26,6 +26,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "22"
+
+      - name: Install NPM dependencies
+        run: npm install
       
       - name: Install dependencies
         run: gleam deps download
